@@ -1,33 +1,32 @@
-import Product, { ProductStatus } from '@application/domain/product';
-import ProductServicePort from '@application/ports/product-service-port';
+import Product from '@application/domain/product';
+import ProductRepositoryPort from '@application/ports/product-repository-port';
+import ProductServicePort, { CreateParams } from '@application/ports/product-service-port';
 
 class ProductService implements ProductServicePort {
-  async validate(product: Product): Promise<void> {
-    if (product.price < 0) {
-      throw new Error('The price must be greater or equal zero.');
-    }
+  constructor(private productRepository: ProductRepositoryPort) {}
 
-    return Promise.resolve();
+  async create({ name, price }: CreateParams): Promise<Product> {
+    const product = new Product(name, price);
+
+    await product.validate();
+
+    return this.productRepository.save(product);
+  }
+
+  async get(id: string): Promise<Product> {
+    return this.productRepository.get(id);
   }
 
   async enable(product: Product): Promise<Product> {
-    if (product.price > 0) {
-      return Object.create({
-        ...product,
-        status: ProductStatus.ENABLED
-      });
-    }
-    throw new Error('The price must be greater than zero to enable the product.');
+    await product.enable();
+
+    return this.productRepository.save(product);
   }
 
   async disable(product: Product): Promise<Product> {
-    if (product.price === 0) {
-      return Object.create({
-        ...product,
-        status: ProductStatus.DISABLED
-      });
-    }
-    throw new Error('The price must be zero in order to have the product disabled.');
+    await product.disable();
+
+    return this.productRepository.save(product);
   }
 }
 
