@@ -9,15 +9,9 @@
     "strictPropertyInitialization": false,
     "baseUrl": "./src",
     "paths": {
-      // "@modules/*": [
-      //   "modules/*"
-      // ],
-      // "@config/*": [
-      //   "config/*"
-      // ],
-      // "@shared/*": [
-      //   "shared/*"
-      // ]
+      "@application/*": [
+        "application/*"
+      ]
     },
     "esModuleInterop": true,
     "experimentalDecorators": true,
