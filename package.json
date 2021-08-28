@@ -14,11 +14,6 @@
     "test:clear": "jest --clearCache",
     "prepare": "husky install"
   },
-  "lint-staged": {
-    "*.ts": [
-      "eslint src/* --fix"
-    ]
-  },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/uuid": "^8.3.1",
