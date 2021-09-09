@@ -2,6 +2,7 @@ import { mocked } from 'ts-jest/utils';
 import { createConnection, getConnection, getConnectionManager } from 'typeorm';
 
 import PostgreSQLConnection from '@adapters/outbound/persistence/typeorm/helpers/postgresql-connection';
+import ConnectionNotFoundError from '@adapters/outbound/persistence/helpers/connection-errors';
 
 jest.mock('typeorm', () => ({
   Entity: jest.fn(),
@@ -18,11 +19,13 @@ describe('Postgresql Connection Tests', () => {
 
   let hasSpy: jest.Mock;
   let createConnectionSpy: jest.Mock;
+  let closeSpy: jest.Mock;
   let getConnectionSpy: jest.Mock;
   let getConnectionManagerSpy: jest.Mock;
 
   beforeAll(() => {
     hasSpy = jest.fn().mockReturnValue(true);
+    closeSpy = jest.fn();
 
     getConnectionManagerSpy = jest.fn().mockReturnValue({
       has: hasSpy
@@ -32,7 +35,9 @@ describe('Postgresql Connection Tests', () => {
     createConnectionSpy = jest.fn().mockResolvedValue({});
     mocked(createConnection).mockImplementation(createConnectionSpy);
 
-    getConnectionSpy = jest.fn().mockReturnValue({});
+    getConnectionSpy = jest.fn().mockReturnValue({
+      close: closeSpy
+    });
     mocked(getConnection).mockImplementation(getConnectionSpy);
   });
 
@@ -62,6 +67,23 @@ describe('Postgresql Connection Tests', () => {
 
       expect(getConnectionSpy).toHaveBeenCalledWith();
       expect(getConnectionSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('disconnect method', () => {
+    it('should close connection', async () => {
+      hasSpy.mockReturnValueOnce(false);
+
+      await sysUnderTest.connect();
+      await sysUnderTest.disconnect();
+
+      expect(closeSpy).toHaveBeenCalledWith();
+      expect(closeSpy).toHaveBeenCalledTimes(1);
+    });
+    it('should return close connection error ConnectionNotFoundError', async () => {
+      const disconnect = sysUnderTest.disconnect();
+
+      await expect(disconnect).rejects.toThrow(new ConnectionNotFoundError());
     });
   });
 });
