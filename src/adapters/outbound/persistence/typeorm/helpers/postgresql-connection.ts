@@ -17,8 +17,8 @@ export default class PostgreSQLConnection implements DBConnection {
     return this.instance;
   }
 
-  async connect(): Promise<void> {
-    this.connection = getConnectionManager().has('default')
+  async connect(name?: string): Promise<void> {
+    this.connection = getConnectionManager().has(name || 'default')
       ? getConnection()
       : await createConnection();
   }

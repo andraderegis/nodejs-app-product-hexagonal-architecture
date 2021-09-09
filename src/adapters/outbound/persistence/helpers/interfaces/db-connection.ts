@@ -1,4 +1,4 @@
 export default interface DBConnection {
-  connect(): Promise<void>;
+  connect(name?: string): Promise<void>;
   disconnect(): Promise<void>;
 }
