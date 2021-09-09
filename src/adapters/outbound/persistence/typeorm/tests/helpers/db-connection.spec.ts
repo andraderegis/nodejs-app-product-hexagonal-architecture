@@ -1,6 +1,7 @@
 import { mocked } from 'ts-jest/utils';
-import { createConnection, getConnection, getConnectionManager } from 'typeorm';
+import { createConnection, getConnection, getConnectionManager, getRepository } from 'typeorm';
 
+import Product from '@application/domain/product';
 import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
 import ConnectionNotFoundError from '@adapters/outbound/persistence/helpers/connection-errors';
 
@@ -15,6 +16,8 @@ jest.mock('typeorm', () => ({
 }));
 
 describe('DB Connection Tests', () => {
+  const mockRepositoryName = 'repository';
+
   let sysUnderTest: DBConnection;
 
   let hasSpy: jest.Mock;
@@ -22,6 +25,7 @@ describe('DB Connection Tests', () => {
   let closeSpy: jest.Mock;
   let getConnectionSpy: jest.Mock;
   let getConnectionManagerSpy: jest.Mock;
+  let getRepositorySpy: jest.Mock;
 
   beforeAll(() => {
     hasSpy = jest.fn().mockReturnValue(true);
@@ -39,6 +43,9 @@ describe('DB Connection Tests', () => {
       close: closeSpy
     });
     mocked(getConnection).mockImplementation(getConnectionSpy);
+
+    getRepositorySpy = jest.fn().mockReturnValue(mockRepositoryName);
+    mocked(getRepository).mockImplementation(getRepositorySpy);
   });
 
   beforeEach(() => {
@@ -72,8 +79,6 @@ describe('DB Connection Tests', () => {
 
   describe('disconnect method', () => {
     it('should close connection', async () => {
-      hasSpy.mockReturnValueOnce(false);
-
       await sysUnderTest.connect();
       await sysUnderTest.disconnect();
 
@@ -84,6 +89,25 @@ describe('DB Connection Tests', () => {
       const disconnect = sysUnderTest.disconnect();
 
       await expect(disconnect).rejects.toThrow(new ConnectionNotFoundError());
+    });
+  });
+
+  describe('getRepository method', () => {
+    it('should get repository', async () => {
+      await sysUnderTest.connect();
+
+      const repository = sysUnderTest.getRepository(Product);
+
+      expect(getRepositorySpy).toHaveBeenCalledWith(Product);
+      expect(getRepositorySpy).toHaveBeenCalledTimes(1);
+      expect(repository).toBe(mockRepositoryName);
+
+      await sysUnderTest.disconnect();
+    });
+
+    it('should return error ConnectionNotFoundError on getRepository if connection is not opened', async () => {
+      expect(getRepositorySpy).not.toHaveBeenCalled();
+      expect(() => sysUnderTest.getRepository(Product)).toThrow(new ConnectionNotFoundError());
     });
   });
 });
