@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils';
 import { createConnection, getConnection, getConnectionManager } from 'typeorm';
 
-import PostgreSQLConnection from '@adapters/outbound/persistence/typeorm/helpers/postgresql-connection';
+import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
 import ConnectionNotFoundError from '@adapters/outbound/persistence/helpers/connection-errors';
 
 jest.mock('typeorm', () => ({
@@ -14,8 +14,8 @@ jest.mock('typeorm', () => ({
   getRepository: jest.fn()
 }));
 
-describe('Postgresql Connection Tests', () => {
-  let sysUnderTest: PostgreSQLConnection;
+describe('DB Connection Tests', () => {
+  let sysUnderTest: DBConnection;
 
   let hasSpy: jest.Mock;
   let createConnectionSpy: jest.Mock;
@@ -42,11 +42,11 @@ describe('Postgresql Connection Tests', () => {
   });
 
   beforeEach(() => {
-    sysUnderTest = PostgreSQLConnection.getInstance();
+    sysUnderTest = DBConnection.getInstance();
   });
   describe('getInstance method', () => {
     it('should have only get unique instance', () => {
-      const systemUnderTest2 = PostgreSQLConnection.getInstance();
+      const systemUnderTest2 = DBConnection.getInstance();
 
       expect(sysUnderTest).toBe(systemUnderTest2);
     });

@@ -1,17 +1,17 @@
 import { Connection, createConnection, getConnection, getConnectionManager } from 'typeorm';
-import DBConnection from '@adapters/outbound/persistence/helpers/interfaces/db-connection';
+import IDBConnection from '@adapters/outbound/persistence/helpers/interfaces/db-connection';
 import ConnectionNotFoundError from '@adapters/outbound/persistence/helpers/connection-errors';
 
-export default class PostgreSQLConnection implements DBConnection {
-  private static instance?: PostgreSQLConnection;
+export default class DBConnection implements IDBConnection {
+  private static instance?: DBConnection;
 
   private connection?: Connection;
 
   private constructor() {}
 
-  static getInstance(): PostgreSQLConnection {
+  static getInstance(): DBConnection {
     if (!this.instance) {
-      this.instance = new PostgreSQLConnection();
+      this.instance = new DBConnection();
     }
 
     return this.instance;
