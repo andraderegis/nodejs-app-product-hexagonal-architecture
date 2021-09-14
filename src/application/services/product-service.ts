@@ -17,6 +17,10 @@ class ProductService implements ProductServicePort {
     return this.productRepository.get(id);
   }
 
+  async update(product: Product): Promise<Product> {
+    return this.productRepository.update(product);
+  }
+
   async enable(product: Product): Promise<Product> {
     await product.enable();
 
