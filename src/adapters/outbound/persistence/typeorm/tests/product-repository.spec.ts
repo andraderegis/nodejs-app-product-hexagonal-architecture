@@ -78,4 +78,43 @@ describe('Product Repository Tests', () => {
       expect(product).toEqual(expect.objectContaining(productData));
     });
   });
+
+  describe('update method', () => {
+    it('should be update a product ', async () => {
+      const productData = {
+        id: uuid(),
+        name: 'notebook',
+        price: 5000,
+        status: ProductStatus.ENABLED
+      } as Product;
+
+      const savedProduct = await repository.save(productData);
+
+      const productToUpdate = Object.assign(savedProduct, {
+        name: 'Notebook Lenovo Legion Y530'
+      });
+
+      const productUpdated = await sysUnderTest.update(productToUpdate);
+
+      expect(productUpdated).toBeDefined();
+      expect(productUpdated.name).toEqual(productToUpdate.name);
+    });
+
+    it('should save a nonexistent product ', async () => {
+      const productData = {
+        id: uuid(),
+        name: 'notebook',
+        price: 5000,
+        status: ProductStatus.ENABLED
+      } as Product;
+
+      const productToUpdate = await sysUnderTest.get(productData.id);
+      expect(productToUpdate).toBeUndefined();
+
+      const productUpdated = await sysUnderTest.update(productData);
+
+      expect(productUpdated).toBeDefined();
+      expect(productUpdated.name).toEqual(productData.name);
+    });
+  });
 });
