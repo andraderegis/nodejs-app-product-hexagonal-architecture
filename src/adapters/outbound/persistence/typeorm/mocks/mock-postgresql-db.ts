@@ -1,7 +1,7 @@
 import { IMemoryDb, newDb } from 'pg-mem';
+import { Connection } from 'typeorm';
 
 import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
-import { Connection } from 'typeorm';
 
 class MockPostgresqlDB {
   private constructor() {}

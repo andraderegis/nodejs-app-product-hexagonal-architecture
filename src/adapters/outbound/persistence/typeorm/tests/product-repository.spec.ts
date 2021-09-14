@@ -9,7 +9,7 @@ import ProductRepository from '@adapters/outbound/persistence/typeorm/product-re
 import { ProductEntity } from '@adapters/outbound/persistence/typeorm/entities';
 
 import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
-import MockPostgresqlDB from '@adapters/outbound/persistence/typeorm/mocks/db-connection';
+import MockPostgresqlDB from '@adapters/outbound/persistence/typeorm/mocks/mock-postgresql-db';
 
 describe('Product Repository Tests', () => {
   let sysUnderTest: ProductRepository;
