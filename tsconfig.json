@@ -11,6 +11,9 @@
     "paths": {
       "@application/*": [
         "application/*"
+      ],
+      "@adapters/*": [
+        "adapters/*"
       ]
     },
     "esModuleInterop": true,
@@ -18,5 +21,6 @@
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "include": ["src"]
 }
