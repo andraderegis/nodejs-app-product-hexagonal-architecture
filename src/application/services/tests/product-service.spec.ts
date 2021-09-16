@@ -73,4 +73,25 @@ describe('ProductService Tests', () => {
       );
     });
   });
+
+  describe('update method', () => {
+    it('should be update product', async () => {
+      const product = new Product('notebook', 5000);
+      const savedProduct = await productService.create(product);
+
+      const productToUpdate = { ...savedProduct, name: 'Notebook Lenovo Legion Y530' } as Product;
+      const productUpdated = await productService.update(productToUpdate);
+
+      expect(productUpdated).toBeDefined();
+      expect(productUpdated.name).toEqual(productToUpdate.name);
+    });
+
+    it('should be save a nonexistent product', async () => {
+      const product = new Product('notebook', 5000);
+      const productUpdated = await productService.update(product);
+
+      expect(productUpdated).toBeDefined();
+      expect(product).toEqual(expect.objectContaining(productUpdated));
+    });
+  });
 });
