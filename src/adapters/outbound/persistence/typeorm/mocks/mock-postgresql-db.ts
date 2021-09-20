@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IMemoryDb, newDb } from 'pg-mem';
 import { Connection } from 'typeorm';
+import * as entityModules from '@adapters/outbound/persistence/typeorm/entities';
 
 import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
 
 class MockPostgresqlDB {
   private constructor() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async make(entities?: any[]): Promise<IMemoryDb> {
     const db = newDb();
 
@@ -18,7 +19,7 @@ class MockPostgresqlDB {
     const connection: Connection = await db.adapters.createTypeormConnection({
       type: 'postgres',
       name: 'default',
-      entities: entities ?? ['src/adapters/outbound/typeorm/entities/index.ts'],
+      entities: entities || (await this.parseImportedEntities()),
       database: 'mock_database'
     });
 
@@ -27,6 +28,19 @@ class MockPostgresqlDB {
     await DBConnection.getInstance().connect();
 
     return db;
+  }
+
+  private static parseImportedEntities(): Promise<any[]> {
+    try {
+      return Promise.resolve(
+        Object.entries(entityModules).map(item => {
+          const [, value] = item;
+          return value;
+        }) as any[]
+      );
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 }
 
