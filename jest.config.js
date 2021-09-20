@@ -25,7 +25,8 @@ module.exports = {
   collectCoverageFrom: [
     '<rootDir>/src/application/services/*.ts',
     '<rootDir>/src/application/domain/*.ts',
-    '<rootDir>/src/adapters/outbound/persistence/typeorm/*.ts'
+    '<rootDir>/src/adapters/outbound/persistence/typeorm/*.ts',
+    '<rootDir>/src/adapters/inbound/controllers/*.ts'
   ],
 
   // The directory where Jest should output its coverage files
