@@ -24,13 +24,27 @@
         "import/extensions": "off",
         "no-console": "off",
         "no-useless-constructor": "off",
+        "import/prefer-default-export": "off",
         "camelcase": "off",
+        "import/no-extraneous-dependencies": [
+          "error",
+          {
+            "devDependencies": [
+              "**/*.spec.ts",
+              "**/*.test.ts",
+              "**/*.ts"
+            ]
+          }
+        ],
         "@typescript-eslint/no-unused-vars": [
             "error",
             {
                 "argsIgnorePattern": "_"
             }
-        ]
+        ],
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-empty-interface": "off",
+        "@typescript-eslint/no-explicit-any": "off"
     },
     "settings": {
         "import/resolver": {
