@@ -23,7 +23,7 @@ export class GetProductController implements ControllerInterface {
       const products = await this.productService.get(request.data.id);
 
       return products ? OK(products) : NOT_FOUND();
-    } catch (error) {
+    } catch (error: any) {
       return SERVER_ERROR(error);
     }
   }
