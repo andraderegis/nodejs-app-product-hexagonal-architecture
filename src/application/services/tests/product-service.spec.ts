@@ -1,7 +1,7 @@
 import Product, { ProductStatus } from '@application/domain/product';
 import MockProductRepository from '@application/mocks/mock-product-repository';
 import ProductRepositoryPort from '@application/ports/product-repository-port';
-import ProductService from '@application/services/product-service';
+import { ProductService } from '@application/services';
 
 describe('ProductService Tests', () => {
   let productService: ProductService;
