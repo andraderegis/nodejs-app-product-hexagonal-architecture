@@ -5,15 +5,15 @@ import MockPostgresqlDB from '@adapters/outbound/persistence/typeorm/mocks/mock-
 import ProductRepository from '@adapters/outbound/persistence/typeorm/product-repository';
 import ProductRepositoryPort from '@application/ports/product-repository-port';
 import ProductServicePort from '@application/ports/product-service-port';
-import ProductService from '@application/services/product-service';
-import { ServerError } from '@adapters/inbound/errors/http';
+import { ProductService } from '@application/services';
+import { ProductError } from '@application/domain/errors/product-error';
 
 describe('Create Product Controller', () => {
   let sysUnderTest: ControllerInterface;
   let productService: ProductServicePort;
   let productRepository: ProductRepositoryPort;
 
-  const serverErrorName = new ServerError().name;
+  const productErrorName = new ProductError().name;
 
   beforeAll(async () => {
     await MockPostgresqlDB.make();
@@ -65,9 +65,9 @@ describe('Create Product Controller', () => {
       data: product
     });
 
-    expect(statusCode).toEqual(500);
+    expect(statusCode).toEqual(400);
     expect(data).toBeUndefined();
-    expect(error.name).toEqual(serverErrorName);
+    expect(error.name).toEqual(productErrorName);
     expect(error.message).toContain('The price must be greater or equal zero.');
   });
 });

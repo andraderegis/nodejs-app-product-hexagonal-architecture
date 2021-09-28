@@ -2,7 +2,7 @@ import Product from '@application/domain/product';
 import ProductRepositoryPort from '@application/ports/product-repository-port';
 import ProductServicePort, { CreateParams } from '@application/ports/product-service-port';
 
-class ProductService implements ProductServicePort {
+export class ProductService implements ProductServicePort {
   constructor(private productRepository: ProductRepositoryPort) {}
 
   async create({ name, price }: CreateParams): Promise<Product> {
@@ -34,4 +34,4 @@ class ProductService implements ProductServicePort {
   }
 }
 
-export default ProductService;
+// export default ProductService;
