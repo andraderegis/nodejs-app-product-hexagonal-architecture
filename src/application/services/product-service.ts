@@ -33,5 +33,3 @@ export class ProductService implements ProductServicePort {
     return this.productRepository.save(product);
   }
 }
-
-// export default ProductService;
