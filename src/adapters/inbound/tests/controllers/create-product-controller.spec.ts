@@ -53,7 +53,7 @@ describe('Create Product Controller', () => {
     });
 
     expect(statusCode).toEqual(400);
-    expect(data).toBeUndefined();
+    expect(data).toEqual({});
   });
   it('should not create product. price lower 0', async () => {
     const product = {
@@ -66,7 +66,7 @@ describe('Create Product Controller', () => {
     });
 
     expect(statusCode).toEqual(400);
-    expect(data).toBeUndefined();
+    expect(data).toEqual({});
     expect(error.name).toEqual(productErrorName);
     expect(error.message).toContain('The price must be greater or equal zero.');
   });

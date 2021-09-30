@@ -34,8 +34,8 @@ describe('Get Product Controller', () => {
       }
     });
 
-    expect(statusCode).toEqual(404);
-    expect(data).toBeUndefined();
+    expect(statusCode).toBe(404);
+    expect(data).toEqual({});
   });
 
   it('should find product', async () => {
@@ -49,7 +49,7 @@ describe('Get Product Controller', () => {
       }
     });
 
-    expect(statusCode).toEqual(200);
+    expect(statusCode).toBe(200);
     expect(savedProduct).toEqual(expect.objectContaining(data));
   });
 });
