@@ -1,4 +1,5 @@
 import { v4 as uuid } from 'uuid';
+import { ProductError } from './errors/product-error';
 
 // eslint-disable-next-line no-shadow
 export enum ProductStatus {
@@ -24,7 +25,7 @@ class Product {
 
   async validate(): Promise<void> {
     if (this.price < 0) {
-      throw new Error('The price must be greater or equal zero.');
+      throw new ProductError('The price must be greater or equal zero.');
     }
 
     return Promise.resolve();
@@ -36,7 +37,7 @@ class Product {
       return this;
     }
 
-    throw new Error('The price must be greater than zero to enable the product.');
+    throw new ProductError('The price must be greater than zero to enable the product.');
   }
 
   async disable(): Promise<Product> {
@@ -45,7 +46,7 @@ class Product {
       return this;
     }
 
-    throw new Error('The price must be zero in order to have the product disabled.');
+    throw new ProductError('The price must be zero in order to have the product disabled.');
   }
 }
 

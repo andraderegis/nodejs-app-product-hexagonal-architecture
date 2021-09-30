@@ -6,7 +6,7 @@ import ProductRepository from '@adapters/outbound/persistence/typeorm/product-re
 import Product from '@application/domain/product';
 import ProductRepositoryPort from '@application/ports/product-repository-port';
 import ProductServicePort from '@application/ports/product-service-port';
-import ProductService from '@application/services/product-service';
+import { ProductService } from '@application/services';
 
 describe('Get Product Controller', () => {
   let sysUnderTest: ControllerInterface;
@@ -34,8 +34,8 @@ describe('Get Product Controller', () => {
       }
     });
 
-    expect(statusCode).toEqual(404);
-    expect(data).toBeUndefined();
+    expect(statusCode).toBe(404);
+    expect(data).toEqual({});
   });
 
   it('should find product', async () => {
@@ -49,7 +49,7 @@ describe('Get Product Controller', () => {
       }
     });
 
-    expect(statusCode).toEqual(200);
+    expect(statusCode).toBe(200);
     expect(savedProduct).toEqual(expect.objectContaining(data));
   });
 });

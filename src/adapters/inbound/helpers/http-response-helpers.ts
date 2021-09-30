@@ -1,21 +1,30 @@
-export type HttpResponse<T = unknown> = {
+import { ServerError } from '../errors/http';
+
+export type HttpResponse<T = any> = {
   statusCode: number;
   data: T;
+  error?: Error;
 };
+export class HttpResponseHelper {
+  private constructor() {}
 
-class HttpResponseHelper {
-  static makeReponse(statusCode: number, data: unknown): HttpResponse {
+  static makeReponse(statusCode: number, data: any, error?: Error): HttpResponse {
     return {
       statusCode,
-      data
+      data,
+      error
     };
   }
 }
 
-const OK = (data: unknown): HttpResponse => HttpResponseHelper.makeReponse(200, data);
+export const OK = (data: any): HttpResponse => HttpResponseHelper.makeReponse(200, data);
 
-const NOT_FOUND = (): HttpResponse => HttpResponseHelper.makeReponse(404, undefined);
+export const CREATED = (data: any): HttpResponse => HttpResponseHelper.makeReponse(201, data);
 
-const SERVER_ERROR = (error: unknown): HttpResponse => HttpResponseHelper.makeReponse(500, error);
+export const BAD_REQUEST = (error: Error): HttpResponse =>
+  HttpResponseHelper.makeReponse(400, {}, error);
 
-export { OK, NOT_FOUND, SERVER_ERROR };
+export const NOT_FOUND = (): HttpResponse => HttpResponseHelper.makeReponse(404, {});
+
+export const SERVER_ERROR = (error: Error): HttpResponse =>
+  HttpResponseHelper.makeReponse(500, undefined, new ServerError(error));

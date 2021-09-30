@@ -20,10 +20,10 @@ export class GetProductController implements ControllerInterface {
     request: HttpRequest<GetProductsHttpRequestParams>
   ): Promise<HttpResponse<unknown>> {
     try {
-      const products = await this.productService.get(request.data.id);
+      const product = await this.productService.get(request.data.id);
 
-      return products ? OK(products) : NOT_FOUND();
-    } catch (error) {
+      return product ? OK(product) : NOT_FOUND();
+    } catch (error: any) {
       return SERVER_ERROR(error);
     }
   }
