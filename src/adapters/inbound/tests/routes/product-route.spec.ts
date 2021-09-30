@@ -1,33 +1,28 @@
 import request from 'supertest';
-import { IBackup } from 'pg-mem';
+import { v4 as uuid } from 'uuid';
 
 import { ProductError } from '@application/domain/errors/product-error';
 import { ProductEntity } from '@adapters/outbound/persistence/typeorm/entities';
 import { ServerError } from '@adapters/inbound/errors/http';
 import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
 import MockPostgresqlDB from '@adapters/outbound/persistence/typeorm/mocks/mock-postgresql-db';
-// import { Repository } from 'typeorm';
 
 describe('Product Routes', () => {
-  let expressApp: any;
+  let sysUnderTest: any;
   let connection: DBConnection;
-  let dbBackup: IBackup;
-  // let repository: Repository<ProductEntity>;
 
   const createProductSpy = jest.fn();
+  const getProductSpy = jest.fn();
 
   beforeAll(done => {
     (async () => {
-      connection = DBConnection.getInstance();
-
-      const db = await MockPostgresqlDB.make([ProductEntity]);
-
-      dbBackup = db.backup();
-      // repository = connection.getRepository(ProductEntity);
-
       const { app } = await import('@adapters/config/express');
 
-      expressApp = app;
+      sysUnderTest = app;
+
+      connection = DBConnection.getInstance();
+
+      await MockPostgresqlDB.make([ProductEntity]);
 
       setTimeout(done, 100);
     })();
@@ -37,22 +32,19 @@ describe('Product Routes', () => {
     await connection.disconnect();
   });
 
-  beforeEach(() => {
-    dbBackup.restore();
-  });
   describe('POST - /products', () => {
     jest.mock('@application/services/product-service', () => ({
       ProductService: jest.fn().mockReturnValue({
-        create: createProductSpy
+        create: createProductSpy,
+        get: getProductSpy
       })
     }));
-
     it('should create and return status code 201', async () => {
       const productToSave = { name: 'notebook', price: 10000 };
 
       createProductSpy.mockResolvedValueOnce(productToSave);
 
-      const { status, body } = await request(expressApp)
+      const { status, body } = await request(sysUnderTest)
         .post('/api/v1/products')
         .send(productToSave);
 
@@ -61,23 +53,7 @@ describe('Product Routes', () => {
     });
 
     it('should not create and return status code 400. invalid price', async () => {
-      const productToSave = { name: 'notebook', price: -5000 };
-
-      createProductSpy.mockImplementationOnce(() => {
-        throw new ProductError('The price must be greater or equal zero.');
-      });
-
-      const { status, body } = await request(expressApp)
-        .post('/api/v1/products')
-        .send(productToSave);
-
-      expect(status).toEqual(400);
-      expect(body.error).toBeDefined();
-      expect(body.error).toEqual('The price must be greater or equal zero.');
-    });
-
-    it('should not create and return status code 400. mandatory fields not informed', async () => {
-      const productToSave = {};
+      const productToSave = { name: 'Notebook Acer Nitro 5', price: -5000 };
 
       createProductSpy.mockImplementationOnce(() => {
         throw new ProductError('The price must be greater or equal zero.');
@@ -86,10 +62,11 @@ describe('Product Routes', () => {
       const {
         status,
         body: { error }
-      } = await request(expressApp).post('/api/v1/products').send(productToSave);
+      } = await request(sysUnderTest).post('/api/v1/products').send(productToSave);
 
       expect(status).toEqual(400);
       expect(error).toBeDefined();
+      expect(error).toEqual('The price must be greater or equal zero.');
     });
 
     it('should not create and return status code 500', async () => {
@@ -102,21 +79,40 @@ describe('Product Routes', () => {
       const {
         status,
         body: { error }
-      } = await request(expressApp).post('/api/v1/products').send(productToSave);
+      } = await request(sysUnderTest).post('/api/v1/products').send(productToSave);
 
       expect(status).toEqual(500);
       expect(error).toBeDefined();
     });
+  });
 
-    // it('should get product', async () => {
-    //   const productToSave = { name: 'notebook', price: 5000 };
+  describe('GET - /products/:id', () => {
+    it('should get product', async () => {
+      const product = {
+        id: uuid(),
+        name: 'notebook',
+        price: 5000
+      };
 
-    //   const product = await repository.save(productToSave);
+      getProductSpy.mockResolvedValueOnce(product);
 
-    //   const {
-    //     status,
-    //     body
-    //   } = await request(app).get('/api/v1/products').
-    // });
+      const { status, body } = await request(sysUnderTest).get(`/api/v1/products/${product.id}`);
+
+      expect(status).toBe(200);
+      expect(product).toEqual(expect.objectContaining(body));
+    });
+
+    it('should not found product', async () => {
+      const product = {
+        id: uuid
+      };
+
+      getProductSpy.mockResolvedValueOnce(undefined);
+
+      const { status, body } = await request(sysUnderTest).get(`/api/v1/products/${product.id}`);
+
+      expect(status).toBe(404);
+      expect(body).toEqual({});
+    });
   });
 });

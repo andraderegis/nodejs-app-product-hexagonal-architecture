@@ -22,9 +22,9 @@ export const OK = (data: any): HttpResponse => HttpResponseHelper.makeReponse(20
 export const CREATED = (data: any): HttpResponse => HttpResponseHelper.makeReponse(201, data);
 
 export const BAD_REQUEST = (error: Error): HttpResponse =>
-  HttpResponseHelper.makeReponse(400, undefined, error);
+  HttpResponseHelper.makeReponse(400, {}, error);
 
-export const NOT_FOUND = (): HttpResponse => HttpResponseHelper.makeReponse(404, undefined);
+export const NOT_FOUND = (): HttpResponse => HttpResponseHelper.makeReponse(404, {});
 
 export const SERVER_ERROR = (error: Error): HttpResponse =>
   HttpResponseHelper.makeReponse(500, undefined, new ServerError(error));
