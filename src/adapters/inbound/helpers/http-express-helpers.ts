@@ -5,6 +5,7 @@ const requestHandler = (controller: ControllerInterface): RequestHandler => {
   return async (req: Request, res: Response) => {
     const httpRequest = {
       data: {
+        ...req.params,
         ...req.body
       }
     };
