@@ -10,4 +10,5 @@ export default interface ProductServicePort {
   enable(product: Product): Promise<Product>;
   get(id: string): Promise<Product>;
   update(product: Product): Promise<Product>;
+  validate(product: Product): Promise<void>;
 }
