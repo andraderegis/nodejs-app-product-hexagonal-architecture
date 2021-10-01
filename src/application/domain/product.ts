@@ -23,14 +23,6 @@ class Product {
     this.price = price;
   }
 
-  // async validate(): Promise<void> {
-  //   if (this.price < 0) {
-  //     throw new ProductError('The price must be greater or equal zero.');
-  //   }
-
-  //   return Promise.resolve();
-  // }
-
   async enable(): Promise<Product> {
     if (this.price > 0) {
       this.status = ProductStatus.ENABLED;

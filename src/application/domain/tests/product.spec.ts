@@ -36,18 +36,18 @@ describe('Product Tests', () => {
     });
   });
 
-  describe('validate method', () => {
-    it('should be valid product', async () => {
-      const product = new Product('notebook', 0);
+  // describe('validate method', () => {
+  //   it('should be valid product', async () => {
+  //     const product = new Product('notebook', 0);
 
-      await expect(product.validate()).resolves.toBeUndefined();
-    });
-    it('should be invalid product. price is minor than 0', async () => {
-      const product = new Product('notebook', -10);
+  //     await expect(product.validate()).resolves.toBeUndefined();
+  //   });
+  //   it('should be invalid product. price is minor than 0', async () => {
+  //     const product = new Product('notebook', -10);
 
-      await expect(product.validate()).rejects.toThrowError(
-        'The price must be greater or equal zero.'
-      );
-    });
-  });
+  //     await expect(product.validate()).rejects.toThrowError(
+  //       'The price must be greater or equal zero.'
+  //     );
+  //   });
+  // });
 });
