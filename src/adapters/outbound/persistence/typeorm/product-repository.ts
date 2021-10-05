@@ -26,7 +26,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryPort 
   async update(product: Product): Promise<Product> {
     const { id } = product;
 
-    const { affected } = await this.getRepository(ProductEntity).update(
+    await this.getRepository(ProductEntity).update(
       {
         id
       },
@@ -35,7 +35,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryPort 
       }
     );
 
-    return affected ? this.get(id) : undefined;
+    return this.get(id);
   }
 }
 
