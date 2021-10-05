@@ -24,17 +24,18 @@ class ProductRepository extends BaseRepository implements ProductRepositoryPort 
   }
 
   async update(product: Product): Promise<Product> {
-    const productToUpdate = await this.get(product.id);
+    const { id } = product;
 
-    if (!productToUpdate) {
-      return this.save(product);
-    }
-
-    const productUpdated = await this.getRepository(ProductEntity).save(
-      Object.assign(productToUpdate, product)
+    await this.getRepository(ProductEntity).update(
+      {
+        id
+      },
+      {
+        ...product
+      }
     );
 
-    return Object.fromEntries(Object.entries(productUpdated)) as Product;
+    return this.get(id);
   }
 }
 

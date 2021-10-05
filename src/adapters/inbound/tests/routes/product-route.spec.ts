@@ -2,6 +2,7 @@ import request from 'supertest';
 import { v4 as uuid } from 'uuid';
 
 import { ProductError } from '@application/domain/errors/product-error';
+import Product from '@application/domain/product';
 import { ProductEntity } from '@adapters/outbound/persistence/typeorm/entities';
 import { ServerError } from '@adapters/inbound/errors/http';
 import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
@@ -13,6 +14,7 @@ describe('Product Routes', () => {
 
   const createProductSpy = jest.fn();
   const getProductSpy = jest.fn();
+  const updateProductSpy = jest.fn();
 
   beforeAll(done => {
     (async () => {
@@ -36,9 +38,11 @@ describe('Product Routes', () => {
     jest.mock('@application/services/product-service', () => ({
       ProductService: jest.fn().mockReturnValue({
         create: createProductSpy,
-        get: getProductSpy
+        get: getProductSpy,
+        update: updateProductSpy
       })
     }));
+
     it('should create and return status code 201', async () => {
       const productToSave = { name: 'notebook', price: 10000 };
 
@@ -70,8 +74,6 @@ describe('Product Routes', () => {
     });
 
     it('should not create and return status code 500', async () => {
-      const productToSave = { name: 'notebook', price: 5000 };
-
       createProductSpy.mockImplementationOnce(() => {
         throw new ServerError(new Error('Server Error'));
       });
@@ -79,7 +81,7 @@ describe('Product Routes', () => {
       const {
         status,
         body: { error }
-      } = await request(sysUnderTest).post('/api/v1/products').send(productToSave);
+      } = await request(sysUnderTest).post('/api/v1/products').send({});
 
       expect(status).toEqual(500);
       expect(error).toBeDefined();
@@ -113,6 +115,47 @@ describe('Product Routes', () => {
 
       expect(status).toBe(404);
       expect(body).toEqual({});
+    });
+  });
+
+  describe('PATCH - /products', () => {
+    beforeAll(() => {
+      jest.resetAllMocks();
+    });
+    it('should update product', async () => {
+      const product = new Product('Legion 5i', 7000);
+
+      updateProductSpy.mockResolvedValueOnce(product);
+
+      const { status, body } = await request(sysUnderTest).patch('/api/v1/products').send(product);
+
+      expect(status).toBe(200);
+      expect(body).toBeDefined();
+      expect(body).toEqual(expect.objectContaining({ ...product }));
+    });
+
+    it('should not update product. not found product', async () => {
+      const product = new Product('Legion 5i', 7000);
+
+      updateProductSpy.mockImplementationOnce(() => {
+        throw new ProductError(`product ${product.id} not found`);
+      });
+
+      const { status, error } = await request(sysUnderTest).patch('/api/v1/products').send(product);
+
+      expect(status).toBe(400);
+      expect(error).toBeDefined();
+    });
+
+    it('should not update product. server error', async () => {
+      updateProductSpy.mockImplementationOnce(() => {
+        throw new ServerError();
+      });
+
+      const { status, error } = await request(sysUnderTest).patch('/api/v1/products').send({});
+
+      expect(status).toBe(500);
+      expect(error).toBeDefined();
     });
   });
 });

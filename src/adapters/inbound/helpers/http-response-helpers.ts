@@ -28,3 +28,5 @@ export const NOT_FOUND = (): HttpResponse => HttpResponseHelper.makeReponse(404,
 
 export const SERVER_ERROR = (error: Error): HttpResponse =>
   HttpResponseHelper.makeReponse(500, undefined, new ServerError(error));
+
+export const DELETED = (): HttpResponse => HttpResponseHelper.makeReponse(204, {});
