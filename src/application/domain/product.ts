@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid, validate as uuidValidate } from 'uuid';
 import { ProductError } from './errors/product-error';
 
 // eslint-disable-next-line no-shadow
@@ -16,19 +16,11 @@ class Product {
 
   status: ProductStatus;
 
-  constructor(name: string, price: number) {
-    this.id = uuid();
+  constructor(name: string, price: number, id?: string) {
+    this.id = id && uuidValidate(id) ? id : uuid();
     this.status = ProductStatus.DISABLED;
     this.name = name;
     this.price = price;
-  }
-
-  async validate(): Promise<void> {
-    if (this.price < 0) {
-      throw new ProductError('The price must be greater or equal zero.');
-    }
-
-    return Promise.resolve();
   }
 
   async enable(): Promise<Product> {

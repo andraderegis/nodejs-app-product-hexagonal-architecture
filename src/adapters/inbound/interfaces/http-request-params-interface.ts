@@ -8,3 +8,9 @@ export interface CreateProductHttpRequestParams extends HttpRequestParams {
   name: string;
   price: number;
 }
+
+export interface UpdateProductHttpRequestParams extends HttpRequestParams {
+  id: string;
+  name: string;
+  price: number;
+}

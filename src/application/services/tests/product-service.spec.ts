@@ -86,12 +86,27 @@ describe('ProductService Tests', () => {
       expect(productUpdated.name).toEqual(productToUpdate.name);
     });
 
-    it('should be save a nonexistent product', async () => {
-      const product = new Product('notebook', 5000);
-      const productUpdated = await productService.update(product);
+    it('should not update product. product not found', async () => {
+      const product = new Product('notebook acer nitro 5', 5000);
 
-      expect(productUpdated).toBeDefined();
-      expect(product).toEqual(expect.objectContaining(productUpdated));
+      await expect(productService.update(product)).rejects.toThrowError(
+        `product ${product.id} not found`
+      );
+    });
+  });
+
+  describe('validate method', () => {
+    it('should be valid product', async () => {
+      const product = new Product('notebook', 0);
+
+      await expect(productService.validate(product)).resolves.toBeUndefined();
+    });
+    it('should be invalid product. price is minor than 0', async () => {
+      const product = new Product('notebook', -10);
+
+      await expect(productService.validate(product)).rejects.toThrowError(
+        'The price must be greater or equal zero.'
+      );
     });
   });
 });
