@@ -1,4 +1,4 @@
-import Product, { ProductStatus } from '@application/domain/product';
+import Product from '@application/domain/product';
 import { mocked } from 'ts-jest/utils';
 import { v4, validate } from 'uuid';
 
@@ -20,51 +20,19 @@ describe('Product Tests', () => {
   });
   describe('constructor method', () => {
     it('should be create with informed id', () => {
-      const id = v4Spy();
+      const id = v4();
       const product = new Product('notebook', 5000, id);
 
-      expect(validateSpy).toBeCalled();
+      expect(validateSpy).toHaveBeenCalled();
       expect(id).toEqual(product.id);
     });
     it('should be create without informed id', () => {
+      validateSpy = jest.fn().mockReturnValueOnce(false);
+
       const product = new Product('notebook', 5000);
 
-      expect(v4Spy).toBeCalled();
+      expect(v4Spy).toHaveBeenCalledTimes(1);
       expect(product).toBeDefined();
-    });
-  });
-  describe('enable method', () => {
-    it('should be enable product', async () => {
-      let product = new Product('notebook', 5000);
-
-      product = await product.enable();
-
-      expect(product.status).toEqual(ProductStatus.ENABLED);
-    });
-    it('should not be enable product', async () => {
-      const product = new Product('notebook', 0);
-
-      await expect(product.enable()).rejects.toThrowError(
-        'The price must be greater than zero to enable the product.'
-      );
-    });
-  });
-
-  describe('disable method', () => {
-    it('should be disable product', async () => {
-      let product = new Product('notebook', 0);
-
-      product = await product.disable();
-
-      expect(product.status).toEqual(ProductStatus.DISABLED);
-    });
-
-    it('should not be disable product', async () => {
-      const product = new Product('notebook', 5000);
-
-      await expect(product.disable()).rejects.toThrowError(
-        'The price must be zero in order to have the product disabled.'
-      );
     });
   });
 });
