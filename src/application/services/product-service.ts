@@ -1,5 +1,5 @@
 import { ProductError } from '@application/domain/errors/product-error';
-import Product from '@application/domain/product';
+import Product, { ProductStatus } from '@application/domain/product';
 import ProductRepositoryPort from '@application/ports/product-repository-port';
 import ProductServicePort, { CreateParams } from '@application/ports/product-service-port';
 
@@ -30,16 +30,42 @@ export class ProductService implements ProductServicePort {
     return this.productRepository.update(product);
   }
 
-  async enable(product: Product): Promise<Product> {
-    await product.enable();
+  async enable(id: string): Promise<Product> {
+    const product = await this.productRepository.get(id);
 
-    return this.productRepository.save(product);
+    if (!product) {
+      throw new ProductError(`product ${id} not found.`);
+    }
+
+    if (product.price <= 0) {
+      throw new ProductError('The price must be greater than zero to enable the product.');
+    }
+
+    const productToEnabled = {
+      ...product,
+      status: ProductStatus.ENABLED
+    } as Product;
+
+    return this.productRepository.update(productToEnabled);
   }
 
-  async disable(product: Product): Promise<Product> {
-    await product.disable();
+  async disable(id: string): Promise<Product> {
+    const product = await this.productRepository.get(id);
 
-    return this.productRepository.save(product);
+    if (!product) {
+      throw new ProductError(`product ${id} not found.`);
+    }
+
+    if (product.price !== 0) {
+      throw new ProductError('The price must be zero in order to have the product disabled.');
+    }
+
+    const productToDisabled = {
+      ...product,
+      status: ProductStatus.DISABLED
+    } as Product;
+
+    return this.productRepository.update(productToDisabled);
   }
 
   async validate(product: Product): Promise<void> {
