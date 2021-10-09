@@ -1,36 +1,31 @@
+import { v4 as uuid } from 'uuid';
+
 import { GetProductController } from '@adapters/inbound/controllers';
 import { ControllerInterface } from '@adapters/inbound/interfaces/controller-interface';
-import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
-import MockPostgresqlDB from '@adapters/outbound/persistence/typeorm/mocks/mock-postgresql-db';
 import ProductRepository from '@adapters/outbound/persistence/typeorm/product-repository';
 import Product from '@application/domain/product';
-import ProductRepositoryPort from '@application/ports/product-repository-port';
 import ProductServicePort from '@application/ports/product-service-port';
 import { ProductService } from '@application/services';
 
 describe('Get Product Controller', () => {
   let sysUnderTest: ControllerInterface;
   let productService: ProductServicePort;
-  let productRepository: ProductRepositoryPort;
+
+  jest.mock('@adapters/outbound/persistence/typeorm/product-repository', () => ({
+    ProductRepository: jest.fn().mockReturnValue({})
+  }));
 
   beforeAll(async () => {
-    await MockPostgresqlDB.make();
-
-    const dbConnection = DBConnection.getInstance();
-
-    productRepository = new ProductRepository(dbConnection);
-
-    productService = new ProductService(productRepository);
-  });
-
-  beforeEach(() => {
+    productService = new ProductService(new ProductRepository());
     sysUnderTest = new GetProductController(productService);
   });
 
   it('should cannot found product', async () => {
+    jest.spyOn(productService, 'get').mockResolvedValueOnce(undefined);
+
     const { statusCode, data } = await sysUnderTest.execute({
       data: {
-        id: 'a2b9fb59-ba1e-4e16-a063-3b11216337cc'
+        id: uuid()
       }
     });
 
@@ -41,15 +36,15 @@ describe('Get Product Controller', () => {
   it('should find product', async () => {
     const product = new Product('notebook', 5000);
 
-    const savedProduct = await productRepository.save(product);
+    jest.spyOn(productService, 'get').mockResolvedValueOnce(product);
 
     const { statusCode, data } = await sysUnderTest.execute({
       data: {
-        id: savedProduct.id
+        id: product.id
       }
     });
 
     expect(statusCode).toBe(200);
-    expect(savedProduct).toEqual(expect.objectContaining(data));
+    expect(product).toEqual(expect.objectContaining(data));
   });
 });

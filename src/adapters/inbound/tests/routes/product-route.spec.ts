@@ -1,20 +1,31 @@
 import request from 'supertest';
 import { v4 as uuid } from 'uuid';
-
-import { ProductError } from '@application/domain/errors/product-error';
-import Product from '@application/domain/product';
-import { ProductEntity } from '@adapters/outbound/persistence/typeorm/entities';
 import { ServerError } from '@adapters/inbound/errors/http';
-import DBConnection from '@adapters/outbound/persistence/typeorm/helpers/db-connection';
-import MockPostgresqlDB from '@adapters/outbound/persistence/typeorm/mocks/mock-postgresql-db';
+import { ProductError } from '@application/domain/errors/product-error';
+import { ProductStatus } from '@application/domain/product';
 
 describe('Product Routes', () => {
   let sysUnderTest: any;
-  let connection: DBConnection;
 
-  const createProductSpy = jest.fn();
-  const getProductSpy = jest.fn();
-  const updateProductSpy = jest.fn();
+  const createProductControllerSpy = jest.fn();
+  const getProductControllerSpy = jest.fn();
+  const updateProductControllerSpy = jest.fn();
+  const setProductControllerSpy = jest.fn();
+
+  jest.mock('@adapters/inbound/controllers', () => ({
+    CreateProductController: jest.fn().mockReturnValue({
+      execute: createProductControllerSpy
+    }),
+    GetProductController: jest.fn().mockReturnValue({
+      execute: getProductControllerSpy
+    }),
+    SetProductStatusController: jest.fn().mockReturnValue({
+      execute: setProductControllerSpy
+    }),
+    UpdateProductController: jest.fn().mockReturnValue({
+      execute: updateProductControllerSpy
+    })
+  }));
 
   beforeAll(done => {
     (async () => {
@@ -22,69 +33,58 @@ describe('Product Routes', () => {
 
       sysUnderTest = app;
 
-      connection = DBConnection.getInstance();
-
-      await MockPostgresqlDB.make([ProductEntity]);
-
       setTimeout(done, 100);
     })();
   });
 
-  afterAll(async () => {
-    await connection.disconnect();
-  });
-
   describe('POST - /products', () => {
-    jest.mock('@application/services/product-service', () => ({
-      ProductService: jest.fn().mockReturnValue({
-        create: createProductSpy,
-        get: getProductSpy,
-        update: updateProductSpy
-      })
-    }));
-
     it('should create and return status code 201', async () => {
-      const productToSave = { name: 'notebook', price: 10000 };
+      const product = { name: 'notebook', price: 10000 };
 
-      createProductSpy.mockResolvedValueOnce(productToSave);
+      const response = {
+        statusCode: 201,
+        data: product
+      };
 
-      const { status, body } = await request(sysUnderTest)
-        .post('/api/v1/products')
-        .send(productToSave);
+      createProductControllerSpy.mockResolvedValueOnce(response);
 
-      expect(status).toEqual(201);
-      expect(body).toEqual(expect.objectContaining(productToSave));
+      const { status, body } = await request(sysUnderTest).post('/api/v1/products').send(product);
+
+      expect(status).toEqual(response.statusCode);
+      expect(body).toEqual(expect.objectContaining(response.data));
     });
 
-    it('should not create and return status code 400. invalid price', async () => {
-      const productToSave = { name: 'Notebook Acer Nitro 5', price: -5000 };
+    it('should not create and return status code 400. product error', async () => {
+      const product = { name: 'notebook', price: -1000 };
 
-      createProductSpy.mockImplementationOnce(() => {
-        throw new ProductError('The price must be greater or equal zero.');
-      });
+      const response = {
+        statusCode: 404,
+        data: {}
+      };
 
-      const {
-        status,
-        body: { error }
-      } = await request(sysUnderTest).post('/api/v1/products').send(productToSave);
+      createProductControllerSpy.mockResolvedValueOnce(response);
 
-      expect(status).toEqual(400);
-      expect(error).toBeDefined();
-      expect(error).toEqual('The price must be greater or equal zero.');
+      const { status, body } = await request(sysUnderTest).post('/api/v1/products').send(product);
+
+      expect(status).toEqual(response.statusCode);
+      expect(body).toEqual({});
     });
 
     it('should not create and return status code 500', async () => {
-      createProductSpy.mockImplementationOnce(() => {
-        throw new ServerError(new Error('Server Error'));
-      });
+      const product = { name: 'notebook', price: 1000 };
 
-      const {
-        status,
-        body: { error }
-      } = await request(sysUnderTest).post('/api/v1/products').send({});
+      const response = {
+        statusCode: 500,
+        data: {},
+        error: new ServerError()
+      };
 
-      expect(status).toEqual(500);
-      expect(error).toBeDefined();
+      createProductControllerSpy.mockResolvedValueOnce(response);
+
+      const { status, body } = await request(sysUnderTest).post('/api/v1/products').send(product);
+
+      expect(status).toEqual(response.statusCode);
+      expect(body.error).toEqual(new ServerError().message);
     });
   });
 
@@ -96,65 +96,142 @@ describe('Product Routes', () => {
         price: 5000
       };
 
-      getProductSpy.mockResolvedValueOnce(product);
+      const response = {
+        statusCode: 200,
+        data: product
+      };
+
+      getProductControllerSpy.mockResolvedValueOnce(response);
 
       const { status, body } = await request(sysUnderTest).get(`/api/v1/products/${product.id}`);
 
-      expect(status).toBe(200);
+      expect(status).toBe(response.statusCode);
       expect(product).toEqual(expect.objectContaining(body));
     });
 
     it('should not found product', async () => {
-      const product = {
-        id: uuid
+      const response = {
+        statusCode: 404,
+        data: {}
       };
 
-      getProductSpy.mockResolvedValueOnce(undefined);
+      getProductControllerSpy.mockResolvedValueOnce(response);
 
-      const { status, body } = await request(sysUnderTest).get(`/api/v1/products/${product.id}`);
+      const { status, body } = await request(sysUnderTest).get(`/api/v1/products/${uuid()}`);
 
-      expect(status).toBe(404);
+      expect(status).toBe(response.statusCode);
       expect(body).toEqual({});
     });
   });
 
   describe('PATCH - /products', () => {
-    beforeAll(() => {
-      jest.resetAllMocks();
-    });
     it('should update product', async () => {
-      const product = new Product('Legion 5i', 7000);
+      const product = { id: uuid(), name: 'Legion 5i', price: 7000 };
 
-      updateProductSpy.mockResolvedValueOnce(product);
+      const response = {
+        statusCode: 200,
+        data: product
+      };
+
+      updateProductControllerSpy.mockResolvedValueOnce(response);
 
       const { status, body } = await request(sysUnderTest).patch('/api/v1/products').send(product);
 
-      expect(status).toBe(200);
-      expect(body).toBeDefined();
-      expect(body).toEqual(expect.objectContaining({ ...product }));
+      expect(status).toBe(response.statusCode);
+      expect(body).toEqual(expect.objectContaining(product));
     });
 
     it('should not update product. not found product', async () => {
-      const product = new Product('Legion 5i', 7000);
+      const product = { id: uuid(), name: 'Legion 5i' };
 
-      updateProductSpy.mockImplementationOnce(() => {
-        throw new ProductError(`product ${product.id} not found`);
-      });
+      const response = {
+        statusCode: 400,
+        data: {},
+        error: new ProductError()
+      };
 
-      const { status, error } = await request(sysUnderTest).patch('/api/v1/products').send(product);
+      updateProductControllerSpy.mockResolvedValueOnce(response);
 
-      expect(status).toBe(400);
+      const { status, body, error } = await request(sysUnderTest)
+        .patch('/api/v1/products')
+        .send(product);
+
+      expect(status).toBe(response.statusCode);
+      expect(body.error).toEqual(new ProductError().message);
       expect(error).toBeDefined();
     });
 
     it('should not update product. server error', async () => {
-      updateProductSpy.mockImplementationOnce(() => {
-        throw new ServerError();
-      });
+      const product = { id: uuid(), name: 'Legion 5i', price: 7000 };
 
-      const { status, error } = await request(sysUnderTest).patch('/api/v1/products').send({});
+      const response = {
+        statusCode: 500,
+        data: {},
+        error: new ServerError()
+      };
 
-      expect(status).toBe(500);
+      updateProductControllerSpy.mockResolvedValueOnce(response);
+
+      const { status, body, error } = await request(sysUnderTest)
+        .patch('/api/v1/products')
+        .send(product);
+
+      expect(status).toBe(response.statusCode);
+      expect(body.error).toEqual(new ServerError().message);
+      expect(error).toBeDefined();
+    });
+  });
+
+  describe('PATCH - /products/:id/status/:status', () => {
+    it('should update status', async () => {
+      const product = { id: uuid(), status: ProductStatus.ENABLED };
+
+      const response = {
+        statusCode: 200,
+        data: product
+      };
+
+      setProductControllerSpy.mockResolvedValueOnce(response);
+
+      const { status, body } = await request(sysUnderTest)
+        .patch(`/api/v1/products/${product.id}/status/${product.status}`)
+        .send({});
+
+      expect(status).toBe(response.statusCode);
+      expect(body).toEqual(expect.objectContaining(product));
+    });
+    it('should not update status. invalid status', async () => {
+      const product = { id: uuid(), status: 'invalid_status' };
+
+      const response = {
+        statusCode: 400,
+        data: {}
+      };
+
+      setProductControllerSpy.mockResolvedValueOnce(response);
+
+      const { status, body } = await request(sysUnderTest)
+        .patch(`/api/v1/products/${product.id}/status/${product.status}`)
+        .send({});
+
+      expect(status).toBe(response.statusCode);
+      expect(body).toEqual({});
+    });
+
+    it('should not update status. server error', async () => {
+      const product = { id: uuid(), status: ProductStatus.ENABLED };
+
+      const response = {
+        statusCode: 500
+      };
+
+      setProductControllerSpy.mockResolvedValueOnce(response);
+
+      const { status, error } = await request(sysUnderTest)
+        .patch(`/api/v1/products/${product.id}/status/${product.status}`)
+        .send({});
+
+      expect(status).toBe(response.statusCode);
       expect(error).toBeDefined();
     });
   });
