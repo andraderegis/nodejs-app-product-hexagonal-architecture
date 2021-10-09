@@ -5,9 +5,14 @@ import {
   GetProductControllerFactory
 } from '@adapters/inbound/factories';
 import { requestHandler } from '@adapters/inbound/helpers/http-express-helpers';
+import { SetProductStatusControllerFactory } from '../factories/set-product-status-controller-factory';
 
 export default (router: Router): void => {
   router.post('/v1/products', requestHandler(new CreateProductControllerFactory().create()));
   router.patch('/v1/products', requestHandler(new UpdateProductControllerFactory().create()));
+  router.patch(
+    '/v1/products/:id/status/:status',
+    requestHandler(new SetProductStatusControllerFactory().create())
+  );
   router.get('/v1/products/:id', requestHandler(new GetProductControllerFactory().create()));
 };
